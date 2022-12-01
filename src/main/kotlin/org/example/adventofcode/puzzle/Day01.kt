@@ -20,7 +20,7 @@ fun getElfList(filePath: String): List<Int> {
     var currentCount = 0
     val elves = ArrayList<Int>()
     for (line in fileLines) {
-        if (line == "") {
+        if (line.isBlank()) {
             elves.add(currentCount)
             currentCount = 0
         } else {
