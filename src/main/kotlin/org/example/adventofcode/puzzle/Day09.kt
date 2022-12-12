@@ -108,7 +108,9 @@ object Day09 {
         val paddedX = if(differenceX<0) differenceX+1 else differenceX-1
         val paddedY = if(differenceY<0) differenceY+1 else differenceY-1
 
-        val newTailPos: Position = if(abs(differenceX) >= 1 && abs(differenceY) > 1) {
+        val newTailPos: Position = if(abs(differenceX) > 1 && abs(differenceY) > 1) {
+            Position(tailPos.x+paddedX, tailPos.y+paddedY)
+        } else if(abs(differenceX) >= 1 && abs(differenceY) > 1) {
             Position(tailPos.x+differenceX, tailPos.y+paddedY)
         } else if (abs(differenceX) > 1 && abs(differenceY) >= 1) {
             Position(tailPos.x+paddedX, tailPos.y+differenceY)
@@ -141,6 +143,6 @@ object Day09 {
 fun main() {
     println("Part 1 example solution is: ${Day09.part1("/day09_example.txt")}")
     println("Part 1 main solution is: ${Day09.part1("/day09.txt")}")
-    println("Part 2 example solution is: ${Day09.part2("/day09_example.txt")}")
+    println("Part 2 example solution is: ${Day09.part2("/day09_example2.txt")}")
     println("Part 2 main solution is: ${Day09.part2("/day09.txt")}")
 }
