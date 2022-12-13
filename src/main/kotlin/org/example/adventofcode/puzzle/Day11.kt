@@ -1,20 +1,23 @@
 package org.example.adventofcode.puzzle
 
 import org.example.adventofcode.util.FileLoader
+import java.lang.IllegalArgumentException
 import kotlin.math.floor
 
 object Day11 {
 
-    fun part1(filePath: String): Int {
+    fun part1(filePath: String): Long {
         val lines = FileLoader.loadFromFile<String>(filePath)
         var monkeys = loadMonkeys(lines)
         monkeys = findMonkeyActivity(monkeys, 20)
         return calculateMonkeyBusiness(monkeys)
     }
 
-    fun part2(filePath: String): Int {
+    fun part2(filePath: String): Long {
         val lines = FileLoader.loadFromFile<String>(filePath)
-        return 1
+        var monkeys = loadMonkeys(lines)
+        monkeys = findMonkeyActivityWithoutLessenWorry(monkeys, 10_000)
+        return calculateMonkeyBusiness(monkeys)
     }
 
     fun findMonkeyActivity(monkeys: ArrayList<Monkey>, rounds: Int): ArrayList<Monkey> {
@@ -27,15 +30,14 @@ object Day11 {
                     currentItemWorry = evaluateExpression(monkey.operation!!, currentItemWorry)
 
                     // Lessen Worry
-                    currentItemWorry = floor(currentItemWorry.toFloat()/3f).toInt()
+                    currentItemWorry = floor(currentItemWorry.toDouble()/3f).toLong()
 
                     // Test
-                    if(currentItemWorry % monkey.testDivisor!! == 0) {
+                    if(currentItemWorry % monkey.testDivisor!! == 0L) {
                         monkeys[monkey.testPassMonkey!!].items.add(currentItemWorry)
                     } else {
                         monkeys[monkey.testFailMonkey!!].items.add(currentItemWorry)
                     }
-
                 }
                 monkey.items.clear()
             }
@@ -44,24 +46,55 @@ object Day11 {
         return monkeys
     }
 
-    fun calculateMonkeyBusiness(monkeyActivity: List<Monkey>): Int {
+    fun findMonkeyActivityWithoutLessenWorry(monkeys: ArrayList<Monkey>, rounds: Int): ArrayList<Monkey> {
+        // Get least common multiple
+        val lcm = monkeys
+            .map { it.testDivisor }
+            .distinct()
+            .fold(1L) { acc, div -> acc * div!! }
+
+
+        for (roundNumber in 0 until rounds) {
+            for (monkey in monkeys) {
+                for (item in monkey.items) {
+                    var currentItemWorry = item
+                    // Inspect
+                    monkey.monkeyActivity += 1
+                    currentItemWorry = evaluateExpression(monkey.operation!!, currentItemWorry)
+
+                    // Relief
+                    currentItemWorry = floor(currentItemWorry.toDouble()%lcm).toLong()
+
+                    // Test
+                    if(currentItemWorry % monkey.testDivisor!! == 0L) {
+                        monkeys[monkey.testPassMonkey!!].items.add(currentItemWorry)
+                    } else {
+                        monkeys[monkey.testFailMonkey!!].items.add(currentItemWorry)
+                    }
+                }
+                monkey.items.clear()
+            }
+        }
+
+        return monkeys
+    }
+
+    fun calculateMonkeyBusiness(monkeyActivity: List<Monkey>): Long {
         val sortedList = monkeyActivity.sortedByDescending { it.monkeyActivity }
         return sortedList[0].monkeyActivity * sortedList[1].monkeyActivity
     }
 
-    fun evaluateExpression(expression: String, old: Int): Int {
+    fun evaluateExpression(expression: String, old: Long): Long {
         val replacedString = expression.replace("old", old.toString())
         val expressionParts = replacedString.split(" ")
         val operator = expressionParts[3]
-        val number1 = expressionParts[2].toInt()
-        val number2 = expressionParts[4].toInt()
+        val number1 = expressionParts[2].toLong()
+        val number2 = expressionParts[4].toLong()
 
         return when(operator) {
             "+" -> number1+number2
-            "-" -> number1-number2
             "*" -> number1*number2
-            "/" -> number1/number2
-            else -> -1
+            else -> throw IllegalArgumentException()
         }
     }
 
@@ -76,8 +109,8 @@ object Day11 {
                 currentMonkey.monkeyNumber = monkeyNumber.toInt()
             } else if(line.contains("Starting items")) {
                 val startingItemsStrings = line.split(":")[1].trim().split(",")
-                val startingItemList = startingItemsStrings.map { it.trim().toInt() }
-                val startingItemArrayList = ArrayList<Int>()
+                val startingItemList = startingItemsStrings.map { it.trim().toLong() }
+                val startingItemArrayList = ArrayList<Long>()
                 startingItemArrayList.addAll(startingItemList)
                 currentMonkey.items = startingItemArrayList
             } else if(line.contains("Operation")) {
@@ -100,12 +133,12 @@ object Day11 {
 
     data class Monkey(
         var monkeyNumber: Int? = null,
-        var items: ArrayList<Int> = ArrayList(),
+        var items: ArrayList<Long> = ArrayList(),
         var testDivisor: Int? = null,
         var testPassMonkey: Int? = null,
         var testFailMonkey: Int? = null,
         var operation: String? = null,
-        var monkeyActivity: Int = 0
+        var monkeyActivity: Long = 0L
     )
 }
 
