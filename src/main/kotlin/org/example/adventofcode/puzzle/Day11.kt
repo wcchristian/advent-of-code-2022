@@ -47,7 +47,10 @@ object Day11 {
     }
 
     fun findMonkeyActivityWithoutLessenWorry(monkeys: ArrayList<Monkey>, rounds: Int): ArrayList<Monkey> {
-        // Get least common multiple
+        // Get least common multiple. found this way of calculating the lcm online. Technically
+        // this solution works but would break if any of the numbers have non 1 multiples of prime numbers I think
+        // might revisit this at some point
+
         val lcm = monkeys
             .map { it.testDivisor }
             .distinct()
