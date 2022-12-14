@@ -13,7 +13,7 @@ object Day13 {
 
         for (pairIdx in pairs.indices) {
             val isCorrectOrder = isCorrectOrder(pairs[pairIdx][0], pairs[pairIdx][1])
-            if(isCorrectOrder == true) {
+            if(isCorrectOrder == -1) {
                 correctOrderIndices.add(pairIdx+1)
             }
         }
@@ -22,22 +22,33 @@ object Day13 {
 
     fun part2(filePath: String): Int {
         val lines = FileLoader.loadFromFile<String>(filePath)
-        val pairs = loadPacketPairs(lines)
-        val orderedList = ArrayList<String>()
+        val pairs = loadPacketList(lines)
 
+        //Add divider packets
+        pairs.add("[[2]]")
+        pairs.add("[[6]]")
 
+        val sortedPackets = pairs.sortedWith { a, b ->
+            isCorrectOrder(a, b)
+        }
 
+        val dividerPacketIndexes = ArrayList<Int>()
+        for (i in sortedPackets.indices) {
+            if(sortedPackets[i] == "[[2]]" || sortedPackets[i]  == "[[6]]") {
+                dividerPacketIndexes.add(i+1)
+            }
+        }
 
-        return 1
+        return dividerPacketIndexes[0] * dividerPacketIndexes[1]
     }
 
     /**
-     * Returns true if they are in the right order, false if in the wrong order, null if no decision
+     * Returns -1 if they are in the right order, 1 if in the wrong order, 0 if no decision
      */
-    fun isCorrectOrder(left: String, right: String): Boolean? {
+    fun isCorrectOrder(left: String, right: String): Int {
         val leftElems = left.sanitizeAndSplit(',')
         val rightElems = right.sanitizeAndSplit(',')
-        var isCorrectOrder: Boolean? = null
+        var isCorrectOrder = 0
 
         try {
             for(i in leftElems.indices) {
@@ -51,32 +62,32 @@ object Day13 {
                     isCorrectOrder = isCorrectOrder(leftElems[i], "[${rightElems[i]}]")
                 }
 
-                if(isCorrectOrder != null) { // escape the loop if we have a decision
+                if(isCorrectOrder != 0) { // escape the loop if we have a decision
                     break
                 }
             }
         } catch(e: IndexOutOfBoundsException) { // If index is out of bounds, then we know that right has less elements than left and they are out of order.
-            isCorrectOrder = false
+            isCorrectOrder = 1
         }
 
 
         // If no decision check list lengths
-        if(isCorrectOrder == null && leftElems.size < rightElems.size) {
-            isCorrectOrder = true
-        } else if(isCorrectOrder == null && rightElems.size < leftElems.size) {
-            isCorrectOrder = false // due to the try catch above, this is probably not needed
+        if(isCorrectOrder == 0 && leftElems.size < rightElems.size) {
+            isCorrectOrder = -1
+        } else if(isCorrectOrder == 0 && rightElems.size < leftElems.size) {
+            isCorrectOrder = 1 // due to the try catch above, this is probably not needed
         }
 
         return isCorrectOrder
     }
 
-    fun compareInts(left: Int, right: Int): Boolean? {
+    fun compareInts(left: Int, right: Int): Int {
         if (left < right) {
-            return true
+            return -1
         } else if (right < left) {
-            return false
+            return 1
         } else {
-            return null
+            return 0
         }
     }
 
@@ -134,11 +145,21 @@ object Day13 {
         pairs.add(packets)
         return pairs
     }
+
+    fun loadPacketList(lines: List<String>): ArrayList<String> {
+        val packetList = ArrayList<String>()
+        for (line in lines) {
+            if(line.isNotBlank()) {
+                packetList.add(line)
+            }
+        }
+        return packetList
+    }
 }
 
 fun main() {
     println("Part 1 example solution is: ${Day13.part1("/day13_example.txt")}")
     println("Part 1 main solution is: ${Day13.part1("/day13.txt")}")
-//    println("Part 2 example solution is: ${Day13.part2("/day13_example.txt")}")
-//    println("Part 2 main solution is: ${Day13.part2("/day13.txt")}")
+    println("Part 2 example solution is: ${Day13.part2("/day13_example.txt")}")
+    println("Part 2 main solution is: ${Day13.part2("/day13.txt")}")
 }
